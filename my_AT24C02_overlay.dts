@@ -1,0 +1,46 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "ti,am335x-bone-black";
+
+    fragment@0 {
+        target = <&i2c2>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            my_eeprom: eeprom@50 {
+                compatible = "fang,my-at24c02", "atmel,24c02";
+                reg = <0x50>;
+                pagesize = <8>;
+
+                nvmem-layout {
+                    compatible = "fixed-layout";
+                    #address-cells = <1>;
+                    #size-cells = <1>;
+
+                    serial_cell: serial@0 {
+                        reg = <0x0 0x8>;      /* offset 0, 8 bytes */
+                    };
+                    mac_cell: mac-address@10 {
+                        reg = <0x10 0x6>;     /* offset 0x10, 6 bytes */
+                    };
+                };
+            };
+        };
+    };
+
+    /* Consumer: a test node that references the cells */
+    fragment@1 {
+        target-path = "/";
+        __overlay__ {
+            nvmem_demo: nvmem-demo {
+                compatible = "fang,nvmem-demo";
+                nvmem-cells = <&serial_cell>, <&mac_cell>;
+                nvmem-cell-names = "serial", "mac";
+            };
+        };
+    };
+};
